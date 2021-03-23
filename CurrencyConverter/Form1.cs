@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Newtonsoft.Json;
 
 namespace CurrencyConverter
 {
@@ -15,6 +18,27 @@ namespace CurrencyConverter
         public Form1()
         {
             InitializeComponent();
+        }
+
+        private double getRate(string fromCurrency, string toCurrency)
+        {
+            var json = "";
+            string rate = "";
+            try
+            {
+                string url = string.Format("https://free.currconv.com/api/v7/convert?q={0}_{1}&compact=ultra&apiKey=2bd8f3878134e78c2615", fromCurrency.ToUpper(), toCurrency.ToUpper());
+                string key = string.Format("{0}_{1}", fromCurrency.ToUpper(), toCurrency.ToUpper());
+                
+                json = new WebClient().DownloadString(url);
+                dynamic stuff = JsonConvert.DeserializeObject(json);
+                rate = stuff[key];
+            }
+            catch
+            {
+                rate = "0";
+            }
+
+            return double.Parse(rate);
         }
 
         private void convertButton_Click(object sender, EventArgs e)
@@ -33,9 +57,10 @@ namespace CurrencyConverter
                     inputBoxLabel.Text = "IDR";
                     inputBoxLabel.ForeColor = Color.Black;
 
-                    double output = double.Parse(inputBox.Text) * 0.000069;
+                    double rate = getRate(inputBoxLabel.Text, eurRadioButton.Text);
+                    double output = double.Parse(inputBox.Text) * rate;
 
-                    outputBox.Text = output.ToString();
+                    outputBox.Text = output.ToString(); 
                     outputBoxLabel.Text = usdRadioButton.Text;
                 }
             }
@@ -54,7 +79,8 @@ namespace CurrencyConverter
                     inputBoxLabel.Text = "IDR";
                     inputBoxLabel.ForeColor = Color.Black;
 
-                    double output = double.Parse(inputBox.Text) * 0.000058;
+                    double rate = getRate(inputBoxLabel.Text, eurRadioButton.Text);
+                    double output = double.Parse(inputBox.Text) * rate;
 
                     outputBox.Text = output.ToString();
                     outputBoxLabel.Text = eurRadioButton.Text;
